@@ -57,7 +57,7 @@ class Card extends Phaser.GameObjects.Container{
         let color = this.isSelected? 0x00ff00 : 0x000000;
         this.graphics.lineStyle(5, color);
         this.graphics.strokeRect(0,0, this.config.width, this.config.height);    
-        emitter.emit(G.CARD_CLICKED, {card: this});
+        //emitter.emit(G.CARD_CLICKED, {card: this});
     }
 
     AddBackground(){        

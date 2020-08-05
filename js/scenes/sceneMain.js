@@ -39,6 +39,8 @@ class SceneMain extends Phaser.Scene {
         this.errorTxt.scale = 0;
         let sb = new SoundButtons({scene: this});
         
+        this.movedCards = 0;
+
         this.gameModel = {
             turn: 'player1',
             pozoHighestCard: 0,
@@ -84,22 +86,24 @@ class SceneMain extends Phaser.Scene {
     PlayButtonPressed(params){
         //console.log(params);
         let container = this.gameModel.turn == 'player1'? this.play1_cardContainer : this.play2_cardContainer;
-        this.selectedCard =  container.GetSelectedCard();//container.handCards.find(x=> {return x.isSelected===true});
+        this.selectedCards =  container.GetSelectedCards();//container.handCards.find(x=> {return x.isSelected===true});
         //console.log(this.selectedCard);
-        let ok = this.ValidateCard(this.selectedCard);
+        let ok = this.ValidateCards(this.selectedCards);
         if(ok){
             //this.playedCards.add(this.selectedCard);
-            container.RemoveCard(this.selectedCard);
-            this.playedCards.push(this.selectedCard);            
-            let nextDepth = this.GetNextCardDepth();
-            this.selectedCard.depth = nextDepth;//show card on top. //this.selectedCard.bringToTop();
-            this.tweens.add({targets: this.selectedCard, duration: 1000, 
-                x: this.pozo.x,
-                y: this.pozo.y,
-                depth: nextDepth,            
-                onComplete: this.cardMoved,
-                callbackScope: this
-            });        
+            this.selectedCards.forEach(card=>{
+                container.RemoveCard(card);
+                this.playedCards.push(card);            
+                let nextDepth = this.GetNextCardDepth();
+                card.depth = nextDepth;//show card on top. //this.selectedCard.bringToTop();
+                this.tweens.add({targets: card, duration: 1000, 
+                    x: this.pozo.x,
+                    y: this.pozo.y,
+                    depth: nextDepth,            
+                    onComplete: this.cardMoved,
+                    callbackScope: this
+                });        
+            });
         }
         // this.selectedCards.forEach(c=> {
         //     let params = c.config.params;
@@ -116,28 +120,91 @@ class SceneMain extends Phaser.Scene {
         //this.scene.start('SceneOver');
     }    
 
-    ValidateCard(selectedCard){
-        console.log("sel card", selectedCard);
-        if(selectedCard == null){
+    ValidateCards(selectedCards){
+        console.log("sel cards", selectedCards);
+        let ok = true;
+        if(selectedCards.length == 0){
             this.errorTxt.setText("Please select a card ");
             this.errorTxt.scale = 1;
-            return false;
+            ok =  false;
         }
-        if(selectedCard.number >= this.gameModel.pozoHighestCard){
-            this.gameModel.pozoHighestCard = selectedCard.number;
+        if(ok == false) return false;
+         
+        let cardsNum = selectedCards[0].number;
+        selectedCards.forEach(c=>{
+            if(c.number != cardsNum){
+                this.errorTxt.setText("All cards must have the same value/number.");
+                this.errorTxt.scale = 1;
+                ok =  false;
+            }
+        });
+        if(cardsNum < this.gameModel.pozoHighestCard){
+            this.errorTxt.setText("You must choose a card equal or higher than " + this.gameModel.pozoHighestCard);
+            this.errorTxt.scale = 1;
+            ok = false;            
+        }
+
+        if(ok === true)
+        {
+            this.gameModel.pozoHighestCard = cardsNum;
             this.errorTxt.scale = 0;
             return true;
         }
-        else{
-            this.errorTxt.setText("You must choose a card equal or higher than " + this.gameModel.pozoHighestCard);
-            this.errorTxt.scale = 1;
+        else 
             return false;
-        }
     }
 
     cardMoved(){
-        console.log("cardMoved");        
-        this.ChangeTurn();       
+        console.log("cards Moved");   
+        this.movedCards ++;
+        if(this.movedCards >= this.selectedCards.length) { 
+            this.movedCards = 0;
+            let burn = this.isABurn();
+            if(burn === true){
+                this.errorTxt.setText("4 of same number, you burn them all! and put new cards");
+                this.errorTxt.scale = 1;
+                this.BurnCards();
+            }
+            else 
+                this.ChangeTurn();       
+        }
+    }
+
+    isABurn(){
+        // 4 of same number, you burn them all!
+        let isBurn = false;
+        let pozoCardsNums = [...this.playedCards.map(c=> c.number)];
+        console.log(pozoCardsNums);
+        if(pozoCardsNums.length >= 4){
+            let latest4 = pozoCardsNums.slice(pozoCardsNums.length-4, pozoCardsNums.length);
+            console.log("latest4", latest4);
+            isBurn = (latest4[0] === latest4[1] && latest4[0] === latest4[2] && latest4[0] === latest4[3] );
+        }
+        return isBurn;
+    }
+
+    BurnCards(){
+        this.movedCards = 0;
+        this.playedCards.forEach(card=>{
+            this.tweens.add({targets: card, duration: 2000, 
+                scaleX: 0,
+                scaleY: 0,                      
+                onComplete: this.CardsBurned,
+                callbackScope: this
+            });     
+        });
+    }
+
+    CardsBurned(){
+        this.movedCards ++;
+        let cardsNum = this.playedCards.length;
+        if(this.movedCards >= cardsNum){
+            for(let i=0; i< cardsNum; i++){
+                this.playedCards[i].destroy;
+            }            
+            this.playedCards = [];
+            this.gameModel.pozoHighestCard = 0;
+        }
     }
 
     ChangeTurn(){

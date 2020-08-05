@@ -28,24 +28,8 @@ class CardContainer extends Phaser.GameObjects.Container {
         }
         this.DrawContainerBox();
         this.scene.add.existing(this);
-        emitter.on(G.CARD_CLICKED, this.onCardClicked, this);
-    }
-
-    onCardClicked(params){
-        let card = params.card;        
-        if(card.isSelected){//unselect other cards
-            this.row = 0, this.col =-1;
-            while(this.row < this.rowSize && this.col<this.colSize){
-                let nextCard = this.GetNextCard(); 
-                if(nextCard != null && nextCard != undefined && nextCard.ID != card.ID && nextCard.isSelected)
-                    nextCard.cardClicked();
-            }
-            // this.handCards.forEach(c=> {
-            //     if(c.ID != card.ID && c.isSelected)
-            //     c.cardClicked();
-            // });
-        }
-    }
+        //emitter.on(G.CARD_CLICKED, this.onCardClicked, this);
+    }    
 
     DrawContainerBox(){
         this.graphics = this.scene.add.graphics();
@@ -56,17 +40,16 @@ class CardContainer extends Phaser.GameObjects.Container {
         this.add(this.graphics);
     }    
 
-    GetSelectedCard(){
-        let found = false;
+    GetSelectedCards(){
         this.row = 0, this.col =-1;
-        while(!found && this.row < this.rowSize && this.col<this.colSize){
+        let selCards = [];
+        while( this.row < this.rowSize && this.col<this.colSize){
             let handCard = this.GetNextCard(); 
             if(handCard!= null && handCard!= undefined && handCard.isSelected===true){
-                found = true;
-                return handCard;                
+                selCards.push(handCard);             
             }            
         }
-        return null;
+        return selCards;
     }
 
     InsertCards(newCards, forFirstTime){
