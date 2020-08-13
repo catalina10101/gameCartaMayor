@@ -23,9 +23,11 @@ class SceneLoad extends Phaser.Scene {
         this.load.image('sfxOn', "images/ui/icons/sfx_on.png");
         this.load.image('musicOn', "images/ui/icons/music_on.png");
         this.load.image('musicOff', "images/ui/icons/music_off.png");
+
+        this.load.spritesheet('celeb', 'images/animations/celebrationFrames.png', { frameWidth: 700, frameHeight: 209, margin:0, spacing:0 });//margin: between rows 165
     }
     create(){
-        this.scene.start("SceneMain");//SceneTitle
+        this.scene.start("SceneMain");//SceneTitle SceneMain
     }
 
     onProgress(value){        

@@ -15,6 +15,7 @@ class Card extends Phaser.GameObjects.Container{
 
         this.config = config;               
         this.number = this.config.number;
+        this.showFront = true;
         //center in container
         // this.graphics.x = -config.width/2;
         // this.graphics.y = -config.height/2;
@@ -36,19 +37,16 @@ class Card extends Phaser.GameObjects.Container{
     }
 
     ShowFront(){        
-        this.AddImage();   
+        this.showFront = true;
+        this.AddImage(this.config.imageKey);   
         this.AddNumber(); 
         this.graphics.lineStyle(5, 0x000000);
         this.graphics.strokeRect(0,0, this.config.width, this.config.height); 
     }
 
     ShowBack(){
-        this.image = this.scene.add.image(0,0, "espaldarCarta");
-        //this.image.setOrigin(0.5,0.5);    
-        Align.scaleToGameW(this.image, 0.125);
-        this.image.setInteractive();
-        this.image.on('pointerdown', this.cardClicked, this);
-        this.add(this.image); 
+        this.showFront = false;
+        this.AddImage("espaldarCarta");          
     }
 
     cardClicked(){
@@ -77,9 +75,9 @@ class Card extends Phaser.GameObjects.Container{
         this.add(this.numberDown);        
     }
 
-    AddImage(){
-        if(this.config.imageKey){
-            this.image = this.scene.add.image(0,0, this.config.imageKey);
+    AddImage(imageKey){
+        if(imageKey){
+            this.image = this.scene.add.image(0,0, imageKey);
             this.image.setOrigin(0,0);    
             Align.scaleToWidth(this.image, 1, this.config.width);
             this.image.setInteractive();

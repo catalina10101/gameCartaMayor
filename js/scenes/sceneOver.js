@@ -15,8 +15,17 @@ class SceneOver extends Phaser.Scene {
         //this.alignGrid.showNumbers();
 
         let title = this.add.image(0,0, 'title');
-        this.alignGrid.placeAtIndex(38, title);
+        this.alignGrid.placeAtIndex(27, title);
         Align.scaleToGameW(title, 0.8);
+
+        let winner = "WINNER: " + (model.winner == 'player1'? 'Player 1' : 'Player 2');
+        this.winnerMsg = this.add.text(0,0, winner, {color: '#ffffff', fontSize:80, fontWeight: 'bold',
+            stroke : '#ffffff',
+            strokeThickness : 5,
+            fill : '#EB12F5',
+        });
+        this.winnerMsg.setOrigin(0.5,0.5);
+        this.alignGrid.placeAtIndex(60, this.winnerMsg);
 
         let btnStart = new FlatButton({scene: this, key: 'button1', text:'Play Again', event:'start_game' });
         this.alignGrid.placeAtIndex(93, btnStart);

@@ -19,8 +19,9 @@ class CardContainer extends Phaser.GameObjects.Container {
         this.colSize = config.size;
         this.boxWidth = this.cardSpaceWidth*this.colSize;
         this.config = config;
-
+        this.allCards = [];
         this.handCards = [];
+        this.allCardsHidden = false;
         this.handCards.length = this.rowSize;        
         for(let i=0; i< this.rowSize;i++){
             this.handCards[i] = [];
@@ -52,29 +53,49 @@ class CardContainer extends Phaser.GameObjects.Container {
         return selCards;
     }
 
-    InsertCards(newCards, forFirstTime){
-        let allCards=this.GetAllCards();
-        allCards = [].concat(allCards, newCards);
-        allCards = allCards.sort(this.SortCards);
-        const cardsNum = allCards.length;
-        let cardPut = false;
+    InsertCards(newCards, forFirstTime, showFront){
+        //let allCards= this.GetAllCards();
+        this.allCards = [].concat(this.allCards, newCards);
+        this.allCardsHidden = this.allCards.filter(x=> {return x.showFront === true}).length === 0;
+        let allCardsShown = this.allCards.filter(x=> {return x.showFront === false}).length === 0;
+        let handCards =[];
+        if(this.allCardsHidden ==true || allCardsShown==true)
+            handCards = this.allCards;
+        else {
+            handCards = this.allCards.filter(x=> {return x.showFront === true});
+            let hiddenCards =this.allCards.filter(x=> {return x.showFront === false});
+            hiddenCards.forEach(x=> { x.setVisible(false); });
+        }
+        if(allCardsShown && showFront)            
+            handCards = handCards.sort(this.SortCards);
+        this.handCards[0] = [null, null, null,null, null, null];//clean for stage 3 hidden cards. if player takes 3 cards from pozo, next 3 may keep hidden cards even though they are invisible.
+        const cardsNum = handCards.length;
+        //let cardPut = false;
         this.row = 0, this.col =-1;
         for(let c =0; c< cardsNum; c++){
-            let card =  allCards.pop();
+            let card =  handCards[c]; //handCards.pop();
             card.depth = c;
             if(card.isSelected)
-                card.cardClicked();
-            let handCard = this.GetNextCard(); 
-            this.AddCard(card, this.row, this.col, forFirstTime);
+                card.cardClicked();//for selected eaten cards 
+            let handCard = this.GetNextCard(); //get next row & col                         
+            this.AddCard(card, this.row, this.col, forFirstTime, showFront);
             // cardPut = false;
             // while(!cardPut && this.row < this.rowSize && this.col<this.colSize) {         
             //     let handCard = this.GetNextCard();       
             //     if( handCard == undefined || handCard == null ){                             
             //         this.AddCard(card, this.row, this.col, forFirstTime);
             //         cardPut = true;       
-            //     }                                
-            // }
-            
+            //     }
+            // }            
+        }
+        this.allCardsHidden = this.allCards.filter(x=> {return x.showFront === true}).length === 0;
+    }
+
+    showHidden(){
+        this.allCardsHidden = this.allCards.filter(x=> {return x.showFront === true}).length === 0;
+        if(this.allCardsHidden ==true){
+            this.allCards.forEach(x=> { x.setVisible(true); });
+            this.InsertCards([], false, false);
         }
     }
 
@@ -83,6 +104,10 @@ class CardContainer extends Phaser.GameObjects.Container {
     }
 
     GetAllCards(){
+        return this.allCards;
+    }
+
+    GetAllHandCards(){
         let allCards=[];
         for(let r=0; r< this.rowSize;r++){
             let rowCards = this.handCards[r].filter(x=> {return x !=undefined && x!=null});
@@ -100,14 +125,17 @@ class CardContainer extends Phaser.GameObjects.Container {
             if(nextCard!= null && nextCard!= undefined && nextCard.ID == card.ID){
                 this.handCards[this.row][this.col] = null;
                 found = true;
-            }            
+            }
         }
+        let cardIdx = this.allCards.findIndex(x=> x.ID == card.ID);
+        this.allCards.splice(cardIdx, 1); 
+        this.allCardsHidden = this.allCards.filter(x=> {return x.showFront === true}).length === 0;
         // let cardIDs = this.handCards.map(c=> c.ID);
         // let idx = cardIDs.indexOf(card.ID);
         // this.handCards[idx] = null;
     }
 
-    AddCard(card, row, col, forFirtTime){
+    AddCard(card, row, col, forFirtTime, showFront){
         //animation: from image deck to position in hand.
         this.handCards[row][col] = card;
         //this.add(card);        
@@ -117,8 +145,11 @@ class CardContainer extends Phaser.GameObjects.Container {
         card.y = this.y + cardTopMargin + (row*onTopCardSpace);//different card rows show a bit lower than former row.
         //card.setOrigin(0.5, 0.5);   
         if(forFirtTime){
-            this.scene.add.existing(card);             
-            card.ShowFront();
+            this.scene.add.existing(card);     
+            if(showFront === true)        
+                card.ShowFront();
+            else
+                card.ShowBack();
         }
     }
 

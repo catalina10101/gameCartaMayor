@@ -7,6 +7,7 @@ class CardDeck{
         this.nextID = 0;
         this.BuildDeck();
         this.shuffle();
+        //this.deck = [...this.orderedDeck.sort( (a, b) => {return a.number - b.number} ) ];
     }
 
     BuildDeck(){
@@ -35,7 +36,7 @@ class CardDeck{
 
     //Build by Card Type
     AddSymbolCards( imageKey ){
-        for(let i=1; i<= 13; i++){
+        for(let i=1; i<= 10; i++){
             let card = new Card({scene:this.scene, number: i, imageKey:imageKey
                 // , params: { function:'translate', x: x, y:0}
                  , ID: this.GetNextID()

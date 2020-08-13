@@ -5,6 +5,7 @@ class Model{
         this._score = 0;
         this.soundOn = true;
         this._musicOn = true;
+        this.winner = '';
     }
 
     set musicOn(val){
