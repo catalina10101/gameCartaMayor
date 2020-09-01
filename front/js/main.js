@@ -3,6 +3,7 @@ let model;
 let emitter;
 let G;
 let controller;
+let gameid = sessionStorage.getItem('gameid');
 window.onload = function (){
 
     var isMobile = navigator.userAgent.indexOf("Mobile");
@@ -32,4 +33,5 @@ window.onload = function (){
     model = new Model();
     model.isMobile = isMobile;
     game = new Phaser.Game(config);    
+    console.log("session storage game id: ", gameid);
 }

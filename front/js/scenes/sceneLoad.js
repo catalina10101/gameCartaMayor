@@ -27,7 +27,7 @@ class SceneLoad extends Phaser.Scene {
         this.load.spritesheet('celeb', 'images/animations/celebrationFrames.png', { frameWidth: 700, frameHeight: 209, margin:0, spacing:0 });//margin: between rows 165
     }
     create(){
-        this.scene.start("SceneMain");//SceneTitle SceneMain
+        this.scene.start("SceneTitle");//SceneTitle SceneMain
     }
 
     onProgress(value){        

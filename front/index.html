@@ -27,10 +27,43 @@
     <script src="js/classes/ui/flatButton.js"></script>
     <script src="js/classes/ui/toggleButton.js"></script>
     <script src="js/classes/ui/soundButtons.js"></script>
+
+    <!-- form rel  -->
+    <link rel="stylesheet" href="carta-mayor.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="js/classes/util/serverSocket.js"></script>
+
+    <script>
+        let server = new ServerSocket();    
+        
+        CreateNewGame = () => {
+            server.CreateNewGame();           
+        }
+
+        JoinExistingGame = () => {
+            let gameId = $('#join-game-id').val();
+            server.JoinExistingGame(gameId);            
+        }                    
+    </script>
 </head>
 <body>
 
-<div id="phaser-game" />
+    <div class="vertical-center">
+        <div class="container">
+            <div class="join-game-form">
+                <div>
+                    <button onclick="CreateNewGame();">New Game</button>            
+                </div>
+                <div>
+                    <button onclick="JoinExistingGame();">Join Existing Game with id: </button>
+                    <input id="join-game-id" />
+                </div>   
+            </div>
+        </div>
+    </div>
+
+
+<div id="phaser-game" style="display: none;"/>
 
 
 </body>

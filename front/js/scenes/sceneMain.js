@@ -27,7 +27,7 @@ class SceneMain extends Phaser.Scene {
         this.ConfigCardContainer(this.play1_cardContainer, game.config.width/2 - this.play1_cardContainer.boxWidth/2, this.upperMargin);
 
         this.play2_cardContainer = new CardContainer({scene: this, size: this.handSize});
-        this.ConfigCardContainer(this.play2_cardContainer, game.config.width/2 - this.play2_cardContainer.boxWidth/2, game.config.height - this.upperMargin - this.play1_cardContainer.cardSpaceHeight);
+        this.ConfigOpponentCardContainer(this.play2_cardContainer, game.config.width/2 - this.play2_cardContainer.boxWidth/2, game.config.height - this.upperMargin - this.play1_cardContainer.cardSpaceHeight);
 
         this.playedCards = []; //this.add.group();      
         this.PutPlayCardButton();
@@ -38,7 +38,7 @@ class SceneMain extends Phaser.Scene {
         this.errorTxt = this.add.text(game.config.width*0.6, game.config.height/2, "Error", {color:'red', fontSize:30, wordWrap: { width: model.isMobile==true? 180 : 230 }});
         this.errorTxt.setOrigin(0,0.5);
         this.errorTxt.scale = 0;
-        console.log("this.play1_cardContainer", this.play1_cardContainer);
+        //console.log("this.play1_cardContainer", this.play1_cardContainer);
         this.player1_stage = this.add.text(game.config.width/2 - this.play1_cardContainer.boxWidth/2 -100, game.config.height*0.15, "E 1", {color:'white', fontSize:30});
         this.player2_stage = this.add.text(game.config.width/2 - this.play1_cardContainer.boxWidth/2 -100, game.config.height*0.8, "E 1", {color:'white', fontSize:30});
         let sb = new SoundButtons({scene: this});
@@ -66,8 +66,44 @@ class SceneMain extends Phaser.Scene {
         container.x = x;
         container.y = y;
         
-        let cards = this.deck.TakeCards(this.handSize);        
+        let cards = server.TakeCards(this.handSize); //this.deck.TakeCards(this.handSize); //use BuildCards instead
+        //container.InsertCards(cards, true, true);
+    }
+    ReceiveCards = (cardsModels, container) => {
+        let cards = this.BuildCards(cardsModels);
         container.InsertCards(cards, true, true);
+    }
+
+    ConfigOpponentCardContainer = (container, x, y) => {
+        container.x = x;
+        container.y = y;
+
+        let cardsModels = [];
+        for (let i = 0; i < this.handSize; i++) {
+            cardsModels[i] = {
+                number: 0, 
+                imageKey:'cardSymbol1',                
+                ID: -i
+            };            
+        }
+
+        let cards = this.BuildCards(cardsModels);
+        container.InsertCards(cards, true, false);
+    }
+    // BUILD CARDS : VIRTUAL DECK
+    BuildCards(cardsData){
+        let cards = [];
+        cardsData.forEach(c => {
+            let newCard = this.CreateCard(c.number, c.imageKey, c.ID);
+            cards.push( newCard );
+        });
+        return cards;
+    }
+
+    //Build by Card Type
+    CreateCard( number, imageKey , ID) {
+        let card = new Card({scene:this, number: number, imageKey:imageKey, ID: ID });
+        return card;
     }
     ///button: TAKE CARDS
     PutTakeCardsButton(){        
@@ -134,7 +170,7 @@ class SceneMain extends Phaser.Scene {
     }    
 
     ValidateCards(selectedCards){
-        console.log("sel cards", selectedCards);
+        //console.log("sel cards", selectedCards);
         let ok = true;
         let playerModel = this.gameModel.turn == 'player1'? this.gameModel.player1 : this.gameModel.player2;
         let container = this.gameModel.turn == 'player1'? this.play1_cardContainer : this.play2_cardContainer;   
@@ -184,8 +220,7 @@ class SceneMain extends Phaser.Scene {
         }
     }
 
-    cardMoved(){
-        console.log("cards Moved");   
+    cardMoved(){ 
         this.movedCards ++;
         if(this.movedCards >= this.selectedCards.length) { 
             this.movedCards = 0;
@@ -223,10 +258,8 @@ class SceneMain extends Phaser.Scene {
         // 4 of same number, you burn them all!
         let isBurn = false;
         let pozoCardsNums = [...this.playedCards.map(c=> c.number)];
-        console.log(pozoCardsNums);
         if(pozoCardsNums.length >= 4){
             let latest4 = pozoCardsNums.slice(pozoCardsNums.length-4, pozoCardsNums.length);
-            console.log("latest4", latest4);
             isBurn = (latest4[0] === latest4[1] && latest4[0] === latest4[2] && latest4[0] === latest4[3] );
         }
         return isBurn;
@@ -264,7 +297,6 @@ class SceneMain extends Phaser.Scene {
         let container = this.gameModel.turn == 'player1'? this.play1_cardContainer : this.play2_cardContainer; 
         let handCards = container.GetAllCards();
         let toshow = handCards.map(x=> {return { n: x.number, showFront: x.showFront } });
-        console.log("rem cards: ", this.gameModel.turn, toshow);
         let playerModel = this.gameModel.turn == 'player1'? this.gameModel.player1 : this.gameModel.player2;
         if(handCards.length == 0){            
             playerModel.stage = playerModel.stage + 1;
@@ -310,11 +342,11 @@ class SceneMain extends Phaser.Scene {
     }
 
     OnNextStageCelebrationFinished = () =>{
-        console.log("OnNextStageCelebrationFinished");
+       // console.log("OnNextStageCelebrationFinished");
     }
 
     OnNextGameWonCelebrationFinished = () =>{
-        console.log("OnNextGameWonCelebrationFinished");
+        //console.log("OnNextGameWonCelebrationFinished");
         this.scene.start("SceneOver");
     }
     /*********

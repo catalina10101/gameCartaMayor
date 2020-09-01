@@ -1,0 +1,15 @@
+.join-game-form{
+    text-align: center;
+}
+
+.join-game-form button{
+    margin: 20px;
+    background: mediumpurple;
+    color: white;
+    font-size: 20px;
+}
+
+.join-game-form input {
+    max-width: 50px;
+    font-size: 20px;
+}

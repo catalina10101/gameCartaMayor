@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Bi-directional WebSocket Chat Demo</title>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+<!-- PROP -->
+<link rel="stylesheet" href="carta-mayor.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+    <script>
+            var ws = new WebSocket("ws://localhost:8181");
+            var nickname = "";
+            ws.onopen = function(e) {
+              console.log('Connection to server opened');
+            }
+            
+            ws.onmessage = function(e) {
+              var data = JSON.parse(e.data);                
+              console.log(data);
+              switch(data.operation){
+                case 'newgame': 
+                    sessionStorage.setItem('gameid', data.gameid);
+                    window.location = `http://127.0.0.1:8080/CartaMayor/front/`;
+                    //wsSend("notification", client_uuid, nickname, JSON.stringify({gameid}));
+                    break;
+                case 'error': JoinGame(ws, client_uuid, data.gameid); break;
+                }
+            }
+
+            ws.onclose = function(e) {              
+              console.log("Connection closed");
+            }
+            ////
+
+            function sendMessage(json) {
+                let req = JSON.stringify(json);
+               if(ws.readyState === WebSocket.OPEN) {
+                    ws.send(req);
+               }
+            }
+
+            function disconnect() {
+              ws.close();
+            }
+            ///
+            CreateNewGame = () => {
+                this.sendMessage({
+                    'operation' : 'newgame'
+                });
+            }
+
+            JoinExistingGame = () => {
+                let gameId = $('#join-game-id').val();
+                this.sendMessage({
+                    'operation' : 'joingame',
+                    'gameid' : gameId
+                });
+            }
+    </script>
+
+</head>
+<body lang="en">
+    <div class="vertical-center">
+        <div class="container">
+            <div class="join-game-form">
+                <div>
+                    <button onclick="CreateNewGame();">New Game</button>            
+                </div>
+                <div>
+                    <button onclick="JoinExistingGame();">Join Existing Game with id: </button>
+                    <input id="join-game-id" />
+                </div>   
+            </div>
+        </div>
+    </div>
+
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+</body>
+</html>
