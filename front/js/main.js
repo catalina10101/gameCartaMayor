@@ -33,5 +33,4 @@ window.onload = function (){
     model = new Model();
     model.isMobile = isMobile;
     game = new Phaser.Game(config);    
-    console.log("session storage game id: ", gameid);
 }

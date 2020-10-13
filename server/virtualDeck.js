@@ -35,7 +35,9 @@ module.exports = class VirtualDeck {
 
     //Build by Card Type
     AddSymbolCards( imageKey ){
-        for(let i=1; i<= 10; i++){
+        //3 stages: up to 9:  9x4(pintas) =36, cards in game: 6(hand)x3(stages)x2(players) = 36
+        //2 stages: up to  :  6x4(pintas) =24, cards in game: 6(hand)x2(stages)x2(players) = 24
+        for(let i=1; i<= 6; i++){//
             let card = {
                 number: i, 
                 imageKey:imageKey,                

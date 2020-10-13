@@ -15,7 +15,7 @@ class CardContainer extends Phaser.GameObjects.Container {
         this.onTopCardMargin = 0.25; //space between a card and the card on top
         this.cardSpaceWidth = G.CARD_WIDTH * (1+this.cardMargin);
         this.cardSpaceHeight = G.CARD_HEIGHT * (1+this.cardMargin);  
-        this.rowSize = 3;     
+        this.rowSize = 4;     
         this.colSize = config.size;
         this.boxWidth = this.cardSpaceWidth*this.colSize;
         this.config = config;
@@ -29,6 +29,8 @@ class CardContainer extends Phaser.GameObjects.Container {
         }
         this.DrawContainerBox();
         this.scene.add.existing(this);
+
+        this.PlaceOpponentCards = this.PlaceOpponentCards.bind(this);
         //emitter.on(G.CARD_CLICKED, this.onCardClicked, this);
     }    
 
@@ -59,7 +61,7 @@ class CardContainer extends Phaser.GameObjects.Container {
         this.allCardsHidden = this.allCards.filter(x=> {return x.showFront === true}).length === 0;
         let allCardsShown = this.allCards.filter(x=> {return x.showFront === false}).length === 0;
         let handCards =[];
-        if(this.allCardsHidden ==true || allCardsShown==true)
+        if(this.allCardsHidden ==true || allCardsShown==true || showFront == false)
             handCards = this.allCards;
         else {
             handCards = this.allCards.filter(x=> {return x.showFront === true});
@@ -68,9 +70,9 @@ class CardContainer extends Phaser.GameObjects.Container {
         }
         if(allCardsShown && showFront)            
             handCards = handCards.sort(this.SortCards);
-        this.handCards[0] = [null, null, null,null, null, null];//clean for stage 3 hidden cards. if player takes 3 cards from pozo, next 3 may keep hidden cards even though they are invisible.
+        for(let r =0; r < this.rowSize; r++)
+            this.handCards[r] = [null, null, null,null, null, null];//clean for stage 3 hidden cards. if player takes 3 cards from pozo, next 3 may keep hidden cards even though they are invisible.
         const cardsNum = handCards.length;
-        //let cardPut = false;
         this.row = 0, this.col =-1;
         for(let c =0; c< cardsNum; c++){
             let card =  handCards[c]; //handCards.pop();
@@ -89,7 +91,7 @@ class CardContainer extends Phaser.GameObjects.Container {
             // }            
         }
         this.allCardsHidden = this.allCards.filter(x=> {return x.showFront === true}).length === 0;
-    }
+    }    
 
     showHidden(){
         this.allCardsHidden = this.allCards.filter(x=> {return x.showFront === true}).length === 0;
@@ -145,7 +147,9 @@ class CardContainer extends Phaser.GameObjects.Container {
         card.y = this.y + cardTopMargin + (row*onTopCardSpace);//different card rows show a bit lower than former row.
         //card.setOrigin(0.5, 0.5);   
         if(forFirtTime){
-            this.scene.add.existing(card);     
+            this.scene.add.existing(card);                 
+        }
+        if(forFirtTime || card.showFront != showFront){
             if(showFront === true)        
                 card.ShowFront();
             else
@@ -166,24 +170,69 @@ class CardContainer extends Phaser.GameObjects.Container {
     }
 
     HasCardGreaterThan(number){
-        let found = false;
-        this.row = 0, this.col =-1;
-        while(!found && this.row < this.rowSize && this.col<this.colSize){
-            let handCard = this.GetNextCard(); 
-            if(handCard!= null && handCard!= undefined && handCard.number >= number){
-                found = true;
-                return true;                
-            }            
-        }
-        return false;
+        // let found = false;
+        // this.row = 0, this.col =-1;
+        // while(!found && this.row < this.rowSize && this.col<this.colSize){
+        //     let handCard = this.GetNextCard(); 
+        //     if(handCard!= null && handCard!= undefined && handCard.number >= number){
+        //         found = true;
+        //         return true;                
+        //     }            
+        // }
+        // return false;
+        let handCards = this.allCards.filter(x=> {return x.showFront === true});
+        let greaterCard = handCards.find(x=> {return x.number >= number});
+        return greaterCard != undefined;        
     }
 
-    // RefillContainer(cardsArr){
-    //     for(let i =0; i< this.size; i++){
-    //         if( (this.handCards[i] == undefined || this.handCards[i] == null) && cardsArr.length > 0){
-    //             let card =  cardsArr.pop();
-    //             this.AddCard(card, i);
-    //         }
+    PlaceOpponentCards = (cardsModels) => {
+        console.log("PlaceOpponentCards", cardsModels);
+        this.row = 0, this.col =-1;
+        for(let i=0; i < cardsModels.length; i++ ){
+            //let card = this.handCards[0][i];
+            let card = null;
+            let nonDummyCard = this.allCards.find(c=> c.ID ==cardsModels[i].ID);
+            if(nonDummyCard != undefined){
+                card = nonDummyCard;
+            }
+            else { //use dummy card
+                while( (card === null || card.ID > 0) && this.row < this.rowSize){
+                    card = this.GetNextCard();
+                }
+                if(card.ID <= 0) {
+                    card.ID = cardsModels[i].ID;
+                    card.number = cardsModels[i].number;
+                    card.config.imageKey = cardsModels[i].imageKey;
+                }
+                else 
+                    console.log("ERROR:  opponent dummy card not found");
+            }
+            card.ShowFront();
+            if(!card.isSelected)
+                card.cardClicked();
+        }
+        ///???
+
+        //this.InsertCards([], false, false);
+        ///???
+        let handCardsModel = [];
+        for(let i=0; i< this.rowSize; i++){
+            handCardsModel[i] = Card.GetCardsString(this.handCards[i]);
+        }
+        console.log("OpponentCards allCards", Card.GetCardsString(this.allCards));
+        console.log("OpponentCards handCards", handCardsModel);
+    }
+
+    // ReplaceOpponentHandCards = (handCards) =>{
+    //     for(let r =0; r < this.rowSize; r++)
+    //         this.handCards[r] = [null, null, null,null, null, null];
+    //         const cardsNum = handCards.length;
+    //     this.row = 0, this.col =-1;
+    //     for(let c =0; c< cardsNum; c++){
+    //         let card =  handCards[c]; //handCards.pop();
+    //         card.depth = c;            
+    //         let handCard = this.GetNextCard(); //get next row & col                         
+    //         this.AddCard(card, this.row, this.col, forFirstTime, showFront);      
     //     }
     // }
     

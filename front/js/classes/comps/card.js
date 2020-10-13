@@ -66,9 +66,9 @@ class Card extends Phaser.GameObjects.Container{
     }   
 
     AddNumber(){
-        this.numberUp = this.scene.add.text(this.config.width*0.5, this.config.height*0.1, this.config.number, {fontFamily: 'Anton', color:'#000000', fontSize: '40px'});
+        this.numberUp = this.scene.add.text(this.config.width*0.5, this.config.height*0.1, this.number, {fontFamily: 'Anton', color:'#000000', fontSize: '40px'});
         this.numberUp.setOrigin(0.5,0.5);  
-        this.numberDown = this.scene.add.text(this.config.width*0.5, this.config.height*0.9, this.config.number, {fontFamily: 'Anton', color:'black', fontSize: '40px'});           
+        this.numberDown = this.scene.add.text(this.config.width*0.5, this.config.height*0.9, this.number, {fontFamily: 'Anton', color:'black', fontSize: '40px'});           
         this.numberDown.angle = 180;
         this.numberDown.setOrigin(0.5,0.5);  
         this.add(this.numberUp);
@@ -77,6 +77,8 @@ class Card extends Phaser.GameObjects.Container{
 
     AddImage(imageKey){
         if(imageKey){
+            if(this.image)
+                this.image.destroy();
             this.image = this.scene.add.image(0,0, imageKey);
             this.image.setOrigin(0,0);    
             Align.scaleToWidth(this.image, 1, this.config.width);
@@ -92,5 +94,23 @@ class Card extends Phaser.GameObjects.Container{
             scaleY: -1
         });
         //this.destroy;
+    }
+
+    static GetCardsString(cards) {
+        let cardsStr =  cards.map(x=> {           
+            if(x == null)
+                return "empty";
+
+            let pinta ="";
+            switch(x.config.imageKey){
+                case "cardSymbol1": pinta = "corazones"; break;
+                case "cardSymbol2": pinta = "picas"; break;
+                case "cardSymbol3": pinta = "trebol"; break;
+                case "cardSymbol4": pinta = "diamantes"; break;
+                default: pinta = "unknown"; break;
+            }
+            return x.number + " de " + pinta + ":" + x.ID;
+        });
+        return cardsStr;
     }
 }

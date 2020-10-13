@@ -4,14 +4,17 @@ class ServerSocket{
     constructor(){
         this.Initialize();
         this.gameid= null;
+
+        this.TakeCards = this.TakeCards.bind(this);
+        this.JoinExistingGame = this.JoinExistingGame.bind(this);
+        this.PlayCards = this.PlayCards.bind(this);
+        this.GetExistingGames= this.GetExistingGames.bind(this);
     }
 
     Initialize = () => {
         ws = new WebSocket("ws://localhost:8181");
         var nickname = "";
-        ws.onopen = function(e) {
-          console.log('Connection to server opened');
-        }
+        ws.onopen = this.OnConnectionOpen; 
         
         ws.onmessage = this.OnMessageHandler;
 
@@ -20,9 +23,14 @@ class ServerSocket{
         }
     }
 
+    OnConnectionOpen = () => {
+        this.GetExistingGames();//create or connect to existing
+        console.log('Connection to server opened');
+    }
+
     OnMessageHandler = (e) =>{
         var data = JSON.parse(e.data);                
-        console.log(data);
+        console.log("from server: ",data);
         switch(data.operation){
           case 'newgame': 
               this.gameid = data.gameid;
@@ -31,8 +39,12 @@ class ServerSocket{
               //wsSend("notification", client_uuid, nickname, JSON.stringify({gameid}));
               break;
           case 'error': this.ShowError(data.message); break;          
-          case 'startGame': this.StartGame();break;         
+          case 'startGame': this.StartGame();break;      
+          case 'joingame': model.turn = data.turn ;break;    
           case 'takeCards': this.ReceiveCards(data.message);break;  
+          case 'cardsplayed': this.CardsPlayed(data.message);break; 
+          case 'player-action': this.ReceivePlayerAction(data.message);break;   
+          case 'existingGames': this.ReceiveExistingGames(data.message);break;  
         }
     }
 
@@ -51,14 +63,15 @@ class ServerSocket{
         this.sendMessage({
             'operation' : 'newgame'
         });
+        model.turn = 'player1';
     }
 
-    JoinExistingGame = (gameId) => {  
+    JoinExistingGame = (gameid) => {
         this.gameid = gameid;
         sessionStorage.setItem('gameid', gameid);      
         this.sendMessage({
             'operation' : 'joingame',
-            'gameid' : gameId
+            'gameid' : gameid
         });
     }
 
@@ -68,6 +81,7 @@ class ServerSocket{
     }
 
     TakeCards = (quantity) => {
+        console.log("TakeCards gameid",  this.gameid);
         this.sendMessage({
             'operation' : 'takeCards',
             'gameid' : this.gameid,
@@ -78,6 +92,49 @@ class ServerSocket{
     ReceiveCards = (cardsStr) => {
         let cards = JSON.parse(cardsStr);
         console.log(cards);        
+        emitter.emit("ReceiveCards", cards);
+    }
+
+    PlayCards = (playedCardsModel) => {
+        this.sendMessage({
+            'operation' : 'playcards',
+            'cards': playedCardsModel,
+            'gameid' : this.gameid,
+        });
+    }
+
+    CardsPlayed = (cards) => {
+        console.log("CardsPlayed", cards);
+        emitter.emit("CardsPlayed", cards);
+    }
+
+    SendPlayerAction = (action) =>{
+        this.sendMessage({
+            'operation' : 'player-action',
+            'action': action,   
+            'gameid' : this.gameid,         
+        });
+    }
+
+    ReceivePlayerAction = (action) =>{
+        if(action == 'TakeCards')
+            emitter.emit("OpponentTookCards");
+    }
+
+    //create and join game
+    GetExistingGames = () => {
+        this.sendMessage({
+            'operation' : 'existingGames',           
+        });
+    }
+
+    ReceiveExistingGames = (gamesTxt) => {
+        let games = JSON.parse(gamesTxt);
+        console.log("games", games, games.length);
+        if(games.length > 0 )
+            this.JoinExistingGame(games[0].id);
+        else
+            this.CreateNewGame();
     }
 
     ShowError = (message) => {

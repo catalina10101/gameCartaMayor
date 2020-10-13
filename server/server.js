@@ -9,7 +9,8 @@ let clients = [];
 let currgames = [];
 
 function wsSendToAll(recipientIDs, operation, message) {
-    let recipients = clients.filter(x=> {return recipientIDs.includes(x.id )})
+    let recipients = clients.filter(x=> {return recipientIDs.includes(x.id )});
+    console.log("wsSendToAll", recipients.length);
   for(var i=0; i<recipients.length; i++) {
     var clientSocket = recipients[i].ws;
     if(clientSocket.readyState === WebSocket.OPEN) {
@@ -41,6 +42,9 @@ wss.on('connection', function(ws) {
             break;
         case 'joingame': JoinGame(ws, client_uuid, data.gameid); break;
         case 'takeCards': TakeCards(ws, client_uuid, data.cardNum, data.gameid);break;
+        case 'playcards': CardsPlayed(ws, client_uuid, data);break;
+        case 'existingGames': GetExistingGames(ws, client_uuid, data);break;
+        case 'player-action': SendPlayerAction(ws, client_uuid, data); break;
     }
       //wsSend("message", client_uuid, nickname, message);    
   });
@@ -86,15 +90,40 @@ CreateNewGame = (ws, client_uuid) => {
 
 JoinGame = (ws, client_uuid, gameid) => {
     let ok = false;
+    //remove existen game where player joined
+    let playerCurrGames = currgames.filter(g=> g.players.includes(client_uuid));
+    playerCurrGames.forEach(g=> {
+        if(g.players.length <= 1 && g.id != gameid ){
+            let idx = currgames.map(x=> x.id).indexOf(g.id);
+            currgames.splice(idx, 1);
+        }            
+    });
+    //join existing game
     let existingGame = currgames.find(g=> g.id == gameid);
+    let errorMsg = '';
     if(existingGame){
         console.log("JoinGame?",client_uuid , existingGame.players[0] )
         if(client_uuid != existingGame.players[0] ){
-            existingGame.players.push(client_uuid);
-            ok = true;
+
+            if(existingGame.players.length >= 2){
+                errorMsg = 'This game already has 2 players.';
+            }
+            else {
+                existingGame.players.push(client_uuid);
+                ok = true;
+            }
         }
+        else
+            errorMsg = 'You already joined this game.';
     }
-    if(ok===true){
+    else 
+        errorMsg = "Game doesn't exist.";
+    if(ok===true){       
+        let playerTurn = Number(existingGame.players.indexOf(client_uuid)) + 1;
+        ws.send(JSON.stringify({
+            operation: 'joingame',
+            turn: 'player' +  playerTurn
+        }));
         let deck = new VirtualDeck();
         existingGame.deck = deck;
         wsSendToAll(existingGame.players, "startGame", "");   
@@ -102,16 +131,41 @@ JoinGame = (ws, client_uuid, gameid) => {
     else 
         ws.send(JSON.stringify({
             operation: 'error',
-            message: "Game doesn't exist or you are already joined."    
+            message: errorMsg    
         }));
 }
 
 TakeCards = (ws, client_uuid, cardNum, gameid) =>{
-    let playerGame = currgames.find(g=> g.id == gameid);
+    console.log("TakeCards",currgames, gameid );
+    let playerGame = currgames.find(g=> g.id == Number(gameid));
     let cards = playerGame.deck.TakeCards(cardNum);
-    //add cards to client_uuid model
     ws.send(JSON.stringify({
         operation: 'takeCards',
         message: JSON.stringify(cards)
+    }));
+}
+
+CardsPlayed = (ws, client_uuid, data) => {
+    //let playerGame = currgames.find(g=> g.players.includes(client_uuid));
+    SendMSToOtherPlayers(data.gameid, client_uuid, "cardsplayed", JSON.stringify(data.cards));
+}
+
+SendPlayerAction = (ws, client_uuid, data) => {
+    SendMSToOtherPlayers(data.gameid, client_uuid, "player-action", data.action);
+}
+
+SendMSToOtherPlayers = (gameid, client_uuid, operation, message) => {
+    let playerGame = currgames.find(g=> g.id === Number(gameid));    
+    let playerIdx = playerGame.players.indexOf(client_uuid);
+    let otherPlayers = [...playerGame.players];
+    //console.log("game ", playerGame.id, ", playerIdx: ", playerIdx, ", otherPlays", otherPlayers);
+    otherPlayers.splice(playerIdx,1);
+    wsSendToAll(otherPlayers, operation, message);
+}
+
+GetExistingGames = (ws, client_uuid, data) => {
+    ws.send(JSON.stringify({
+        operation: 'existingGames',
+        message: JSON.stringify(currgames)
     }));
 }
