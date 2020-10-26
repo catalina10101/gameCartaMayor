@@ -51,14 +51,23 @@ wss.on('connection', function(ws) {
 
   var closeSocket = function(customMessage) {
     for(var i=0; i<clients.length; i++) {
-        if(clients[i].id == client_uuid) {
+        if(clients[i].id == client_uuid) {            
             var disconnect_message;
             if(customMessage) {
                 disconnect_message = customMessage;
             } else {
-                disconnect_message = nickname + " has disconnected";
+                disconnect_message = nickname + " has disconnected.";
             }
-            wsSendToAll("notification", disconnect_message);
+            ///
+            let playerCurrGame = currgames.find(g=> g.players.includes(client_uuid));
+            if(playerCurrGame){      
+                SendMSToOtherPlayers(playerCurrGame.id, client_uuid, "player-disconnected", disconnect_message);
+                let idx = currgames.map(x=> x.id).indexOf(playerCurrGame.id);
+                currgames.splice(idx, 1);                          
+                console.log(clients[i].nickname + " has disconnected.", currgames);
+            }
+            ///
+            //wsSendToAll("notification", disconnect_message);
           clients.splice(i, 1);
         }
     }

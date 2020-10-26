@@ -49,8 +49,13 @@ class Card extends Phaser.GameObjects.Container{
         this.AddImage("espaldarCarta");          
     }
 
-    cardClicked(){
-        console.log("card clicked!");
+    CheckCardClicked(e){
+        if(e.downY < game.config.height/2){//clicked my card not opponent
+            this.cardClicked();
+        }
+    }
+
+    cardClicked(){                
         this.isSelected =  !this.isSelected;
         let color = this.isSelected? 0x00ff00 : 0x000000;
         this.graphics.lineStyle(5, color);
@@ -66,9 +71,9 @@ class Card extends Phaser.GameObjects.Container{
     }   
 
     AddNumber(){
-        this.numberUp = this.scene.add.text(this.config.width*0.5, this.config.height*0.1, this.number, {fontFamily: 'Anton', color:'#000000', fontSize: '40px'});
+        this.numberUp = this.scene.add.text(this.config.width*0.5, this.config.height*0.1, this.number, {fontFamily: 'Anton', color:'#000000', fontSize: '35px'});
         this.numberUp.setOrigin(0.5,0.5);  
-        this.numberDown = this.scene.add.text(this.config.width*0.5, this.config.height*0.9, this.number, {fontFamily: 'Anton', color:'black', fontSize: '40px'});           
+        this.numberDown = this.scene.add.text(this.config.width*0.5, this.config.height*0.9, this.number, {fontFamily: 'Anton', color:'black', fontSize: '35px'});           
         this.numberDown.angle = 180;
         this.numberDown.setOrigin(0.5,0.5);  
         this.add(this.numberUp);
@@ -83,7 +88,7 @@ class Card extends Phaser.GameObjects.Container{
             this.image.setOrigin(0,0);    
             Align.scaleToWidth(this.image, 1, this.config.width);
             this.image.setInteractive();
-            this.image.on('pointerdown', this.cardClicked, this);
+            this.image.on('pointerdown', this.CheckCardClicked, this);
             this.add(this.image); 
         }
     }

@@ -61,6 +61,7 @@ class SceneMain extends Phaser.Scene {
         emitter.on("ReceiveCards", this.ReceiveCards);
         emitter.on("CardsPlayed", this.CardsPlayed);
         emitter.on("OpponentTookCards", this.OpponentTakesCards);
+        emitter.on("player-disconnected", this.OnPlayerDisconnected);
     }
     update() {
 		//this is running constantly.
@@ -105,6 +106,11 @@ class SceneMain extends Phaser.Scene {
 
         let cards = this.BuildCards(cardsModels);
         container.InsertCards(cards, true, false);
+    }
+
+    OnPlayerDisconnected = (message)=>{
+        model.SceneOverCustomMsg = message;
+        this.scene.start("SceneOver");
     }
     // BUILD CARDS : VIRTUAL DECK
     BuildCards(cardsData){
@@ -331,6 +337,7 @@ class SceneMain extends Phaser.Scene {
             playerModel.stage = playerModel.stage + 1;
             if(playerModel.stage === this.hellStage+1){
                 model.winner = this.gameModel.turn;
+                model.SceneOverCustomMsg = "WINNER: " + (model.winner == 'player1'? 'Player 1' : 'Player 2');
                 this.CelebrateGameWin();
                 //this.scene.start("SceneOver");
             }

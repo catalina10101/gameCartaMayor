@@ -18,8 +18,8 @@ class SceneOver extends Phaser.Scene {
         this.alignGrid.placeAtIndex(27, title);
         Align.scaleToGameW(title, 0.8);
 
-        let winner = "WINNER: " + (model.winner == 'player1'? 'Player 1' : 'Player 2');
-        this.winnerMsg = this.add.text(0,0, winner, {color: '#ffffff', fontSize:80, fontWeight: 'bold',
+        //let winner = "WINNER: " + (model.winner == 'player1'? 'Player 1' : 'Player 2');
+        this.winnerMsg = this.add.text(0,0, model.SceneOverCustomMsg, {color: '#ffffff', fontSize:80, fontWeight: 'bold',
             stroke : '#ffffff',
             strokeThickness : 5,
             fill : '#EB12F5',

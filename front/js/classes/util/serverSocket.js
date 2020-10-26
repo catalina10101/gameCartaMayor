@@ -45,6 +45,7 @@ class ServerSocket{
           case 'cardsplayed': this.CardsPlayed(data.message);break; 
           case 'player-action': this.ReceivePlayerAction(data.message);break;   
           case 'existingGames': this.ReceiveExistingGames(data.message);break;  
+          case 'player-disconnected' : this.PlayerDisconnected(data.message);break;  
         }
     }
 
@@ -135,6 +136,10 @@ class ServerSocket{
             this.JoinExistingGame(games[0].id);
         else
             this.CreateNewGame();
+    }
+
+    PlayerDisconnected(message){
+        emitter.emit("player-disconnected", message);
     }
 
     ShowError = (message) => {

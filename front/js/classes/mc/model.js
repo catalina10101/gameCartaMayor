@@ -6,6 +6,7 @@ class Model{
         this.soundOn = true;
         this._musicOn = true;
         this.winner = '';
+        this.SceneOverCustomMsg = null;
     }
 
     set musicOn(val){
