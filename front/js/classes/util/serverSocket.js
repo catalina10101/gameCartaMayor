@@ -30,11 +30,12 @@ class ServerSocket{
 
     OnMessageHandler = (e) =>{
         var data = JSON.parse(e.data);                
-        console.log("from server: ",data);
+        //console.log("from server: ",data);
         switch(data.operation){
           case 'newgame': 
               this.gameid = data.gameid;
               sessionStorage.setItem('gameid', data.gameid);
+              //this.StartGame();              
               //window.location = `http://127.0.0.1:8080/CartaMayor/front/`;
               //wsSend("notification", client_uuid, nickname, JSON.stringify({gameid}));
               break;
@@ -82,7 +83,7 @@ class ServerSocket{
     }
 
     TakeCards = (quantity) => {
-        console.log("TakeCards gameid",  this.gameid);
+        //console.log("TakeCards gameid",  this.gameid);
         this.sendMessage({
             'operation' : 'takeCards',
             'gameid' : this.gameid,
@@ -92,7 +93,7 @@ class ServerSocket{
 
     ReceiveCards = (cardsStr) => {
         let cards = JSON.parse(cardsStr);
-        console.log(cards);        
+        //console.log(cards);        
         emitter.emit("ReceiveCards", cards);
     }
 
@@ -105,7 +106,7 @@ class ServerSocket{
     }
 
     CardsPlayed = (cards) => {
-        console.log("CardsPlayed", cards);
+        //console.log("CardsPlayed", cards);
         emitter.emit("CardsPlayed", cards);
     }
 
@@ -131,7 +132,7 @@ class ServerSocket{
 
     ReceiveExistingGames = (gamesTxt) => {
         let games = JSON.parse(gamesTxt);
-        console.log("games", games, games.length);
+        //console.log("games", games, games.length);
         if(games.length > 0 )
             this.JoinExistingGame(games[0].id);
         else

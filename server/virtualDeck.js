@@ -17,6 +17,8 @@ module.exports = class VirtualDeck {
     }
 
     shuffle(){
+        // this.deck = this.orderedDeck.sort((a,b) => {return a.number - b.number});
+        // return;
         let deckLenght =this.orderedDeck.length;
         this.deck.length = deckLenght;
         for(let i=0; i < deckLenght; i++){

@@ -145,6 +145,8 @@ class CardContainer extends Phaser.GameObjects.Container {
         let cardTopMargin =(G.CARD_HEIGHT* this.cardMargin/2);
         let onTopCardSpace = (G.CARD_HEIGHT* this.onTopCardMargin);
         card.y = this.y + cardTopMargin + (row*onTopCardSpace);//different card rows show a bit lower than former row.
+        card.posX = card.x;
+        card.posY = card.y;
         //card.setOrigin(0.5, 0.5);   
         if(forFirtTime){
             this.scene.add.existing(card);                 
@@ -186,7 +188,7 @@ class CardContainer extends Phaser.GameObjects.Container {
     }
 
     PlaceOpponentCards = (cardsModels) => {
-        console.log("PlaceOpponentCards", cardsModels);
+        //console.log("PlaceOpponentCards", cardsModels);
         this.row = 0, this.col =-1;
         for(let i=0; i < cardsModels.length; i++ ){
             //let card = this.handCards[0][i];
@@ -219,8 +221,8 @@ class CardContainer extends Phaser.GameObjects.Container {
         for(let i=0; i< this.rowSize; i++){
             handCardsModel[i] = Card.GetCardsString(this.handCards[i]);
         }
-        console.log("OpponentCards allCards", Card.GetCardsString(this.allCards));
-        console.log("OpponentCards handCards", handCardsModel);
+        // console.log("OpponentCards allCards", Card.GetCardsString(this.allCards));
+        // console.log("OpponentCards handCards", handCardsModel);
     }
 
     // ReplaceOpponentHandCards = (handCards) =>{

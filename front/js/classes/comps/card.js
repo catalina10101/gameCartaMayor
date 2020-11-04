@@ -4,6 +4,7 @@ class Card extends Phaser.GameObjects.Container{
         super(config.scene);
         this.scene = config.scene;
         this.isSelected = false;
+        this.isMoving = false;
         this.ID = config.ID;
         this.depth = this.ID +50;
         if(!config.color)
@@ -19,7 +20,8 @@ class Card extends Phaser.GameObjects.Container{
         //center in container
         // this.graphics.x = -config.width/2;
         // this.graphics.y = -config.height/2;
-
+        this.posX = null;
+        this.posY = null;
         if(config.x)
             this.x = config.x;
         if(config.y)
@@ -50,17 +52,22 @@ class Card extends Phaser.GameObjects.Container{
     }
 
     CheckCardClicked(e){
+        this.isMoving = true;
         if(e.downY < game.config.height/2){//clicked my card not opponent
-            this.cardClicked();
+            this.cardClicked(e);
         }
     }
 
-    cardClicked(){                
+    cardClicked(e){                
         this.isSelected =  !this.isSelected;
         let color = this.isSelected? 0x00ff00 : 0x000000;
         this.graphics.lineStyle(5, color);
-        this.graphics.strokeRect(0,0, this.config.width, this.config.height);    
+        this.graphics.strokeRect(0,0, this.config.width, this.config.height);            
         //emitter.emit(G.CARD_CLICKED, {card: this});
+    }
+
+    OnPointerUp() {        
+        this.isMoving = false;
     }
 
     AddBackground(){        
@@ -89,6 +96,7 @@ class Card extends Phaser.GameObjects.Container{
             Align.scaleToWidth(this.image, 1, this.config.width);
             this.image.setInteractive();
             this.image.on('pointerdown', this.CheckCardClicked, this);
+            this.image.on('pointerup', this.OnPointerUp, this);
             this.add(this.image); 
         }
     }
